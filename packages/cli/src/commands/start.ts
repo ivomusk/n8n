@@ -197,6 +197,10 @@ export class Start extends BaseCommand {
 			}
 		}
 
+		if (process.env.OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS === 'true') {
+			this.needsTaskRunner = false;
+		}
+
 		await super.init();
 		this.activeWorkflowManager = Container.get(ActiveWorkflowManager);
 
@@ -244,7 +248,11 @@ export class Start extends BaseCommand {
 			await this.generateStaticAssets();
 		}
 
-		await this.loadModules();
+		await this.moduleRegistry.initModules();
+
+		if (this.instanceSettings.isMultiMain) {
+			Container.get(MultiMainSetup).registerEventHandlers();
+		}
 	}
 
 	async initOrchestration() {
